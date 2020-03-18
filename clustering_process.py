@@ -1,32 +1,32 @@
 '''
-    Script para aplicar clustering com as features dinamicas;
-    Como usar:  pyhton3 clustering_process <day> <window> <caminho para ficheiros com as features>
-    Exemplo: time python3 clustering_process 1 10 day1/10min/*.csv
+    Script to perform clustering with dynamic features;
+    How to use:  pyhton3 clustering_process <day> <window> <path to feature file(s)>
+    Example: time python3 clustering_process 1 10 day1/10min/*.csv
 '''
-import sys #Para ler da linha de comandos
+import sys 
 import time
-import pandas as pd # Manipular os dados
-from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering # Algoritmos de clustering
-from sklearn.preprocessing import MinMaxScaler # Biblioteca para normalizacao de dados
+import pandas as pd # Data manipulation
+from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering # Clustering Algorithms
+from sklearn.preprocessing import MinMaxScaler # Data normalization libraries
 from sklearn.neighbors import LocalOutlierFactor, NearestNeighbors
 import numpy as np
 import plotly  #LD Heatmap
 import plotly.graph_objs as go #LD Heatmap
-import gc # garbage colector para limpar memoria
+import gc # garbage colector to clean the memory
 import joblib
 from datetime import datetime
 import os
 '''
-    Conjunto de variaveis globais para compilar dados das diferentes janelas temporais
-    em que foram detetadas entidades anomalas (vitimas ou atacantes)
+    Global variables to merge data from different timewindows
+    in which where detected suspicious entities (victims or attackers)
 '''
 save_clusters_victim, save_clusters_attacker = False, False
 score_victims, list_all_windows = [], []
 score_attackers, list_all_windows_attacker = [], []
 
 '''
-    Dicionários com os IPs das vitimas e atacantes
-    'dia':['IPinterno', 'IPexterno']
+    Dictionary with victims and attackers IP addresses
+    'day':['internal IP', 'external IP']
 '''
 victims = {'1':['172.31.69.25','18.217.21.148'], 
         '2':['172.31.69.25','18.217.21.148'],
@@ -51,18 +51,18 @@ attackers = {'1':['18.221.219.4','13.58.98.64'],
         '10':['18.219.211.138']}
 
 '''
-    Funcao para associar o dia do ficheiro a uma escala de dias
+    Fuction to associate a file day to a day scale
 '''
 def get_day(file):
     if '14-02-18' in file:
         day=1
     if '15-02-18' in file:
         day=2
-    if '16-02-18' in file:   #ficheiro que nao da para sacar features
+    if '16-02-18' in file:   
         day=3
     if '20-02-18' in file:
         day=4
-    if '21-02-18' in file:  #ficheiro que nao da para sacar features
+    if '21-02-18' in file: 
         day=5
     if '22-02-18' in file:
         day=6
@@ -75,7 +75,6 @@ def get_day(file):
     if '02-03-18' in file:
         day=10
     return day
-
 
 '''
     Funcao para restringir as janelas de tempo ao respetivo dia, porque existem eventos/flows com datas anteriores/posteriores ao dia em análise.
