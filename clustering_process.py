@@ -1,5 +1,5 @@
 '''
-    Script to perform clustering with dynamic features;
+    Script to perform clustering using dynamic features;
     How to use:  pyhton3 clustering_process <day> <window> <path to feature file(s)>
     Example: time python3 clustering_process 1 10 day1/10min/*.csv
 '''
@@ -77,7 +77,7 @@ def get_day(file):
     return day
 
 '''
-    Funcao para restringir as janelas de tempo ao respetivo dia, porque existem eventos/flows com datas anteriores/posteriores ao dia em análise.
+    Function to select the timewindows of each day.
 '''
 def date(day):
     start_date = 0
@@ -125,22 +125,22 @@ def date(day):
     return start_date, end_date
 
 ''' KMEANS e AGGLOMERATIVE
-    Determinar o within-clusters sum-of-squares para o KMeans,
-    para aplicar o metodo elbow:
-     - k (numero de clusters a encontrar) do KMeans;
-     - n_clusters (numero de clusters a encontrar) Agglomerative = k;
+    Calculate the within-clusters sum-of-squares in KMeans,
+    to further apply the elbow method:
+     - k (number of cluster to find) of KMeans;
+     - n_clusters (number of cluster to find) Agglomerative = k;
 '''
 def calculate_wcss(data):
     wcss = []
-    for n in range(2,30): # testa 2,3,4,..30 clusters e armazena as distancias intra clusters
+    for n in range(2,30): # test 2,3,4,..30 clusters and stores the distances intra-clusters
         kmeans = KMeans(n_clusters=n)
         kmeans.fit(X=data)
         wcss.append(kmeans.inertia_)
     return wcss
 
 ''' DBSCAN
-    Determina as distancias entre as todas as entidades;
-    Organiza-as da mais pequena a maior;
+    Calculates the distances among all entities;
+    Sort them from lower to higher
 '''
 def distances_epsilon(data):
     neigh = NearestNeighbors(n_neighbors=2)
@@ -152,21 +152,21 @@ def distances_epsilon(data):
     
 
 '''
-Função para gerar heatmaps do clustering
+    Function to generate clustering heatmaps
 '''
 def heat(name, newdf, file, day, window):
-    #Numero de entidades por cluster:
+    #Number of entities per cluster:
     out = newdf.groupby(['clusters',newdf.index]).count()
     n_clusters = out.index.to_frame(True, ['clusters','IPs'])
     if (len(newdf.index)> 600):
-        aux = 'EXTERNO'  #externo
-        print('--EXTERNO----'+str(name)+'-----'+str(file)+'-----------')
+        aux = 'EXTERNAL'  #external 
+        print('--EXTERNAL----'+str(name)+'-----'+str(file)+'-----------')
     else:
-        aux = 'INTERNO' # interno
-        print('--INTERNO----'+str(name)+'-----'+str(file)+'-----------')
+        aux = 'INTERNAL' # internal
+        print('--INTERNAL----'+str(name)+'-----'+str(file)+'-----------')
     print(newdf['clusters'].value_counts())
     toz = newdf.groupby('clusters').mean()
-    #eliminar colunas sem diferenças
+    # delete columns without diferences
     toz = toz.loc[:, (toz > 0.2).any(axis=0)]
     print ("Start plot of matrix of shape: browser")
 #    toz = toz.reindex(sorted(toz.columns, key=lambda x: str(x[-5])), axis=1)
@@ -187,10 +187,9 @@ def heat(name, newdf, file, day, window):
     newdf = newdf.drop('clusters',axis=1)
     return newdf
 
-
 '''
-    Calcula o ponto mais distante da linha que une a wcss de k=2 com a wcss k=30;
-    O ponto mais distance representa o melhor k;
+    Calculates the furthest point of the line from wcss of k= 2 with wcss=30;
+    The furthest point represent the better k;
 '''
 def optimal_number_of_clusters(wcss):
     x1,y1 = 2, wcss[0]
@@ -206,29 +205,28 @@ def optimal_number_of_clusters(wcss):
 
     
 '''
-    Função para criar objetos dos algoritmos de clustering e predizer os respetivos clusters para cada entidade
+    Function to create clustering algorithms objects and  predict the respective cluster for each entity
 '''
 def clustering(dataframe, file, day, window):
     '''
-        Normalizacao dos dados para uma escala entre [0,1] - valores por defeito
-        Pode ser usado outro range com MinMaxScaler(range=[-1,1])
+        Data normalization into [0,1] scale - default values
+        Other range can be used with MinMaxScaler(range=[-1,1])
     '''
     
-    #apagar colunas a zero LD
+    #delete zero columns LD
     dataframe = dataframe.loc[:, (dataframe != 0).any(axis=0)]
     print ("Start clustering matrix of shape:")
     print (dataframe.shape)
     
     norm = MinMaxScaler().fit_transform(dataframe)
     '''
-        Nova Dataframe para guardar o numero do cluster a que pertende cada entidade
-        Dataframe to tipo [#entidades, #algoritmos]  
+        New dataframe to store the cluster number of each entity
+        Dataframe of [#entities, #algorithm]
     '''
     new_df = pd.DataFrame(columns=['cluster_kmeans','cluster_dbscan','cluster_agglomerative'], index=dataframe.index[:len(norm)])
     '''
-        Definição do parametro k (# clusters) para o KMeans e AgglomerativeClustering
-        Condição para alterar o parametro k, caso o numero de entidades seja inferior ao parametro
-        como escolher o K? - metodo de elbow
+        Defining parameter k (# clusters) to KMeans and Agglomerative
+        Condition to change parameter k, case the # of entities is lower than the parameter
     '''
     sum_of_squares = calculate_wcss(norm)
 
@@ -249,75 +247,73 @@ def clustering(dataframe, file, day, window):
 
     tempo= time.time()
     '''
-        Cria objeto Kmeans e calcula os clusters com os dados normalizados
+        Created the KMeans object and determines the clusters with normalized data
     '''
     kmeans = KMeans(n_clusters=n_clusters4kmeans).fit(norm).predict(norm)
     print('kmeans - ', time.time()-tempo)
     tempo= time.time()
 
-
     '''
-    chama a funçãoo para heatmap do kmeans
+        Call heatmap function from KMeans
     '''
     auxheat = pd.DataFrame(data=norm, columns=dataframe.columns, index=dataframe.index)
     auxheat['clusters'] = kmeans
     X = heat('KMEANS',auxheat, file, day, window)   #heatmap
     '''
-        Cria objeto DBSCAN e calcula os clusters com os dados normalizados,
-        Do método DBSCAN:
-            - eps -> parametro que indica a distancia maxima considerada entre dois pontos considerados na vizinhança de cada um;
-            - min_smaples -> numero mínimo de amostras para considerar um cluster;
-            - n_jobs -> numero de trabalhos em paralelo.
+        Creates DBSCAN object and determine clusters with normalized data,
+        From DBSCAN method:
+            - eps -> parameter that indicates the maximum distance considered between two points in each neighbourhood;
+            - min_samples -> minimum number of samples to consider as cluster;
+            - n_jobs -> number of works in paralell. 
     '''
     dbscan = DBSCAN(eps=epsilon, min_samples=2, n_jobs=-1).fit_predict(norm)
     print('dbscan - ', time.time()-tempo)
     tempo= time.time()
     '''
-        Cria objeto AgglomerativeClustering e calcula os clusters com os dados normalizados
+        Creates an Agglomerative object and determines the clusters with normalized data
     '''
     agglometative = AgglomerativeClustering(n_clusters=n_clusters4kmeans).fit_predict(norm)
     print('agglometative - ', time.time()-tempo)
     tempo= time.time()
     '''
-        Guarda a informacao sobre os clusters de cada entidade dataframe
+        Stores clusters info of each entity 
     '''
     new_df['cluster_kmeans'] = kmeans
     new_df['cluster_dbscan'] = dbscan
     new_df['cluster_agglomerative'] = agglometative
 
     '''
-        Limpa as variáveis dos algoritmos (só com o gc.collect())
+        Clean algorithm variables (only when gc.collect() is called)
     '''
     del dbscan, kmeans, norm,  agglometative
     gc.collect()
     print('donne clustering')
     ''' 
-        Retorma da dataframe com a informacao dos clusters
+        Returns a dataframe with clusters information
     '''
     return new_df
 
 '''
-    Funcao para analise dos resultados, aplica metricas (True Positives, False Positives, True Negatives, False Negatives),
-
+    Function for result analisys, apply metric (True Positives, False Positives, True Negatives, False Negatives)
 '''
 def result_analysis(df, file, windows, view, day, df_features):
     del df.index.name
     '''
-        Usa variaveis globais, no caso das variaveis:
-            - victims, attackers -> recolhe informacao de acordo com o dia
-            - score_victims, score_attackers -> variaveis usadas para armazenar a cada janela de tempo os scores das diferentes entidades
-            - save_clusters_victim, save_clusters_attacker, list_all_windows, list_all_windows_attacker -> variáveis que compilam a informação de todas as janelas de tempo num unico ficheiro
+        Uses global variables:
+            - victims, attackers -> collects informaticon according the day
+            - score_victims, score_attackers -> variables used to store in each timewindow the different scores by entity
+            - save_clusters_victim, save_clusters_attacker, list_all_windows, list_all_windows_attacker -> variables to compile the information of all timewindows on a single file
     '''
     global victims, attackers
     global score_victims, score_attackers
     global save_clusters_victim, save_clusters_attacker, list_all_windows, list_all_windows_attacker
     '''
-        Caminho para armazenar os resultados
+        Path to store the results
     '''
     file_prefix = 'day'+str(day)+'/'+str(windows)+'min/results_dynamic/'+str(view)+'_'+str(file).split('.')[0].split('/')[-1]
     
     '''
-        Procura a existencia de vitimas e atacantes de acordo com o dia a ser processado
+        Search for victims and attackers acording to the processsed day
     '''
     n_victims = 0
     for victim in victims[str(day)]:
@@ -334,30 +330,29 @@ def result_analysis(df, file, windows, view, day, df_features):
             df.loc[attacker].to_csv(file_prefix +'_'+str(df.loc[attacker].name) + '_attacker' +'.csv', header= True)
     print('# Attackers Found - ', n_attackers)
     '''
-        Caso sejam encontradas(os) vitimas e/ou atacantes,
+        Case victims or attackers are founded
     '''
     if (save_clusters_victim==True) or (save_clusters_attacker==True):
         print('saving files')
         '''
-            Guarda a informacao sobre os clusters em ficheiros separados e identificados pela janela de tempo e algoritmo
+            Stores information about the clusters in separated files identified by the timewindow and algorithm
         '''
         df['cluster_kmeans'].to_csv(file_prefix + '_kmeans.csv', header=True)
         df['cluster_dbscan'].to_csv(file_prefix +'_dbscan.csv', header=True)
         df['cluster_agglomerative'].to_csv(file_prefix+'_agglomerative.csv', header=True)
         '''
-            Escolher cluster de outliers do dbscan
+            Select outlier cluster from DBSCN
         '''
         lof_clusters = df[df['cluster_dbscan'].values == -1]
         lof_clusters = lof_clusters['cluster_dbscan']
         '''
-            Guarda o numero total de entidades por cada cluster para os diferentes algoritmos
+            Stores the total number of entities for each cluster and each algorithm
         '''
         ncluster_kmeans = df.groupby('cluster_kmeans')['cluster_dbscan'].count().to_frame() #.to_csv(file_prefix+'_NCLUSTER_kmeans.csv', header=True)
         ncluster_dbscan = df.groupby('cluster_dbscan')['cluster_kmeans'].count().to_frame() #.to_csv(file_prefix+'_NCLUSTER_dbscan.csv', header=True)
-        # ncluster_hdbscan = df.groupby('cluster_hdbscan')['cluster_kmeans'].count().to_frame() #.to_csv(file_prefix+'_NCLUSTER_hdbscan.csv', header=True)
         ncluster_agglomerative = df.groupby('cluster_agglomerative')['cluster_kmeans'].count().to_frame() #.to_csv(file_prefix+'_NCLUSTER_aglomerative.csv', header=True)
         '''
-            Selecionar os cluster com numero de entidades igual ou menor a 15 e para os algoritmos baseados em densidade considera o cluster de outliers (cluster '-1')
+            Select the clusters with # of entities <= 1 and outlier clusters in desity based algorithms (DBSCAN)
         '''
         ncluster_kmeans_ = ncluster_kmeans[ncluster_kmeans.values <= 1]
         ncluster_dbscan_ = ncluster_dbscan[ncluster_dbscan.values <= 1]
@@ -368,11 +363,11 @@ def result_analysis(df, file, windows, view, day, df_features):
         cluster_results_victim = pd.DataFrame()
 
         '''
-            Analise de Vitimas
+            Victims analysis
         '''
         for victim in victims[str(day)]:
             '''
-                Guardar para cada algoritmo, o numero e tamanho do cluster em que estão as vitimas 
+                Stores for each algorithm: # and size of victim's cluster 
             '''
             if victim in df.index:
                 cluster_results_victim.at[victim,'cluster_kmeans'] = int(df.loc[victim,'cluster_kmeans'])
@@ -382,7 +377,7 @@ def result_analysis(df, file, windows, view, day, df_features):
                 cluster_results_victim.at[victim,'cluster_agglomerative'] = int(df.loc[victim,'cluster_agglomerative'])
                 cluster_results_victim.at[victim,'cluster_agglomerative_size'] = int(ncluster_agglomerative.loc[df.loc[victim,'cluster_agglomerative']][0])
         '''
-            Retira o numero dos clusters em que estao as vitimas, para ussar como indice nas dataframes 'victims_kmeans', 'victims_dbscan', 'victims_aglomerative' 
+            Get the cluster number where victims belong to use as dataframes index ('victims_kmeans', 'victims_dbscan', 'victims_aglomerative' )
         '''
         if len(cluster_results_victim)>0:
             index_count_victims=[]
@@ -394,13 +389,13 @@ def result_analysis(df, file, windows, view, day, df_features):
             victims_dbscan = pd.DataFrame(index=set(index_count_victims),columns=['victims_dbscan','dbscan_size','window'])
             victims_agglomerative = pd.DataFrame(index=set(index_count_victims),columns=['victims_agglomerative','agglomerative_size', 'window'])
             '''
-                Dataframe para guardar os resultados com as metricas definidas abaixo
+                Dataframe to store the results with the metrics defined bellow
             '''
             scores = pd.DataFrame(columns=['kmeans','dbscan','agglomerative'])
 
             for victim in victims[str(day)]:
                 '''
-                    Filtra os clusters com 1 entidade (para i agglomerative e kmeans) e o cluster outlier (dbscan)
+                    Filters the clusters with one entitie (for Agglomerative and KMeans) and outlier cluster (DBSCAN)
                 '''
                 if victim in cluster_results_victim.index:
                     if cluster_results_victim.loc[victim]['cluster_kmeans_size'] <= 1:
@@ -419,7 +414,7 @@ def result_analysis(df, file, windows, view, day, df_features):
             victims_dbscan['window'] = 11111
             victims_dbscan.fillna(value=0, inplace=True)
             '''
-                Numero de vitimas detetadas por algoritmo
+                Number of victims detected by algorithm
             '''
             scores['kmeans'] = victims_kmeans['victims_kmeans']
             scores['dbscan'] = victims_dbscan['victims_dbscan']
@@ -430,7 +425,7 @@ def result_analysis(df, file, windows, view, day, df_features):
             scores.fillna(value=0, inplace=True)
             
             '''
-                Percorre os algritmos e conta o numero de entidades e vitimas por cluster
+                Count number of entities and victims per cluster in each algorithm
             '''
             for algorithm in scores.columns:
                 if str(algorithm) == 'kmeans':
@@ -445,11 +440,11 @@ def result_analysis(df, file, windows, view, day, df_features):
                 print(algorithm + ' :')
                 print(ncluster)
                 '''
-                    Aplica as metricas:
-                    -    True Positices (TP) -  entidades corretamente classificadas como outliers;
-                    -    False Positives (FP) - entidades erradamente classificadas como outliers
-                    -    True Negatives (TN) - entidades corretamente classificadas como 'normais';
-                    -    False Negatives (FN) - entidades erradamente classificadas como 'normais';
+                    Apply the metrics:
+                    -    True Positices (TP) -  entities correctly classified as outliers;
+                    -    False Positives (FP) - entities wrongly classified as outliers;
+                    -    True Negatives (TN) - entities correctly classified as 'normal';
+                    -    False Negatives (FN) - entities wrongly classified as 'normal';
                     -    Accuracy - (TP+TN)/(TP+TN+FP+FN);
                     -    Precision - TP/(TP+FP);
                     -    Recall - TP/(TP+FN);
@@ -461,7 +456,7 @@ def result_analysis(df, file, windows, view, day, df_features):
                 scores.at['#FN',algorithm] = len(df.index)-scores.loc['#TP',algorithm]-scores.loc['#FP',algorithm]-scores.loc['#TN',algorithm]
                 scores.at['Accuracy',algorithm] = (scores.loc['#TP',algorithm]+scores.loc['#TN',algorithm])/(scores.loc['#TP',algorithm]+scores.loc['#TN',algorithm]+scores.loc['#FN',algorithm]+scores.loc['#FP',algorithm])
                 '''
-                    Condição para evitar divisoes por zero
+                    Condition to avoid divisons by zero
                 '''
                 if (scores.loc['#TP',algorithm] == 0 and scores.loc['#FP',algorithm]== 0) or (scores.loc['#FN',algorithm] == 0 and scores.loc['#TP',algorithm]==0):
                     scores.at['Precision',algorithm]= 0
@@ -472,7 +467,7 @@ def result_analysis(df, file, windows, view, day, df_features):
                     scores.at['Recall',algorithm] = scores.loc['#TP',algorithm]/(scores.loc['#TP',algorithm]+scores.loc['#FN',algorithm])
                     scores.at['F1'] = 2*(scores.loc['Precision',algorithm]*scores.loc['Recall',algorithm])/(scores.loc['Recall',algorithm]+scores.loc['Precision',algorithm])
             '''
-                Aplicar LOF ao cluster de outliers identificado pelo numero '100'
+                Apply LOF to outlier cluster identified by '100'
             '''
             lof_scores = pd.DataFrame(index=lof_clusters.index, columns=['score'])
             if len(lof_clusters.index) <= 5:
@@ -483,13 +478,13 @@ def result_analysis(df, file, windows, view, day, df_features):
                 lof.fit_predict(df_features.loc[lof_clusters.index])
                 lof_scores.at[:,'score'] = lof.negative_outlier_factor_
             ''' 
-                O score do LOF é negativo, quanto mais negativo maior a probabilidade de ser um outlier...
-                entao o min() corresponde a entidade identificada com maior probabilidade de ser outlier...
+                LOF score is negative, the more negative the greater the probability of being an outlier
+                then the min () corresponds to the identified entity most likely to be outlier
             '''
             scores.at['Max_score'] = [0,lof_scores.min().values,0] # porque os resultados são negativos
             '''
-                Para cada vitima retira o score LOF,
-                Na analise compara-se o MAX_SCORE com os scores de cada vítima
+                Retrives LOF score for each victim,
+                In the analysis, the MAX_SCORE is compared with the scores of each victim
             '''
             for victim in victims[str(day)]:
                 if victim in lof_scores.index:
@@ -498,13 +493,13 @@ def result_analysis(df, file, windows, view, day, df_features):
             score_victims.append(scores)
 
         '''
-            Análise de atacantes
+            Attackers analysis
         '''
         cluster_results_attacker = pd.DataFrame()
 
         for attacker in attackers[str(day)]:
             '''
-                Guardar para cada algoritmo, o numero e tamanho do cluster em que estão os atacantes 
+                Stores for each algorithm: # and size of attacker's cluster 
             '''
             if attacker in df.index:
                 cluster_results_attacker.at[attacker,'cluster_kmeans'] = int(df.loc[attacker,'cluster_kmeans'])
@@ -514,7 +509,7 @@ def result_analysis(df, file, windows, view, day, df_features):
                 cluster_results_attacker.at[attacker,'cluster_agglomerative'] = int(df.loc[attacker,'cluster_agglomerative'])
                 cluster_results_attacker.at[attacker,'cluster_agglomerative_size'] = int(ncluster_agglomerative.loc[df.loc[attacker,'cluster_agglomerative']][0])
         '''
-            Retira o numero dos clusters em que estao os atacantes, para ussar como indice nas dataframes 'attackers_kmeans', 'attackers_dbscan', 'attackers_aglomerative' 
+            Get the cluster number where victims belong to use as dataframes index ('attackers_kmeans', 'attackers_dbscan', 'attackers_aglomerative')
         '''
         if len(cluster_results_attacker)>0:
             index_count_attacker=[]
@@ -526,13 +521,13 @@ def result_analysis(df, file, windows, view, day, df_features):
             attackers_dbscan = pd.DataFrame(index=set(index_count_attacker),columns=['attackers_dbscan','dbscan_size','window'])
             attackers_agglomerative = pd.DataFrame(index=set(index_count_attacker),columns=['attackers_agglomerative','agglomerative_size', 'window'])
             '''
-                Dataframe para guardar os resultados com as metricas definidas abaixo
+                Dataframe to store the results with the metrics defined bellow
             '''
             scores = pd.DataFrame(index=set(index_count_attacker), columns=['kmeans','dbscan','agglomerative'])
             true_negatives, false_negatives=[],[]
             for attacker in attackers[str(day)]:
                 '''
-                    Filtra os clusters com 1 entidade (oara i agglomerative e kmeans) e o cluster outlier (dbscan)
+                    Filters the clusters with one entitie (for Agglomerative and KMeans) and outlier cluster (DBSCAN)
                 '''
                 if attacker in cluster_results_attacker.index:
                     if cluster_results_attacker.loc[attacker]['cluster_kmeans_size'] <= 1:
@@ -553,7 +548,7 @@ def result_analysis(df, file, windows, view, day, df_features):
             attackers_kmeans['window'] = 1111
             attackers_kmeans.fillna(value=0, inplace=True)
             '''
-                Numero de atacantes detetados por algoritmo
+                Number of attacker detected for each algorithm
             '''
             scores['kmeans'] = attackers_kmeans['attackers_kmeans']
             scores['dbscan'] = attackers_dbscan['attackers_dbscan']
@@ -565,7 +560,7 @@ def result_analysis(df, file, windows, view, day, df_features):
             scores.at['tot_agglomerative'] = scores.iloc[:len(attackers_agglomerative.index)]['agglomerative'].sum()
             scores.fillna(value=0, inplace=True)
             '''
-                Percorre os algritmos e conta o numero de entidades e atacantes por cluster
+               Count number of entities and attackers per cluster in each algorithm
             '''
             for algorithm in scores.columns:
                 if str(algorithm) == 'kmeans':
@@ -574,20 +569,17 @@ def result_analysis(df, file, windows, view, day, df_features):
                 elif str(algorithm) == 'dbscan':
                     ncluster = ncluster_dbscan_.values.sum()
                     count_attacker = attackers_dbscan['attackers_dbscan']
-                # elif str(algorithm) == 'hdbscan':
-                #     ncluster = ncluster_hdbscan_.values.sum()
-                #     count_attacker = attackers_hdbscan['attackers_hdbscan']
                 elif str(algorithm) == 'agglomerative':
                     ncluster = ncluster_agglomerative_.values.sum()
                     count_attacker = attackers_agglomerative['attackers_agglomerative']
                 print(str(algorithm) + ' :')
                 print(ncluster)
                 '''
-                    Aplica as metricas:
-                    -    True Positices (TP) -  entidades corretamente classificadas como outliers;
-                    -    False Positives (FP) - entidades erradamente classificadas como outliers
-                    -    True Negatives (TN) - entidades corretamente classificadas como 'normais';
-                    -    False Negatives (FN) - entidades erradamente classificadas como 'normais';
+                    Apply the metrics:
+                    -    True Positices (TP) -  entities correctly classified as outliers;
+                    -    False Positives (FP) - entities wrongly classified as outliers;
+                    -    True Negatives (TN) - entities correctly classified as 'normal';
+                    -    False Negatives (FN) - entities wrongly classified as 'normal';
                     -    Accuracy - (TP+TN)/(TP+TN+FP+FN);
                     -    Precision - TP/(TP+FP);
                     -    Recall - TP/(TP+FN);
@@ -599,7 +591,7 @@ def result_analysis(df, file, windows, view, day, df_features):
                 scores.at['#FN',algorithm] = len(df.index)-scores.loc['#TP',algorithm]-scores.loc['#FP',algorithm]-scores.loc['#TN',algorithm]
                 scores.at['Accuracy',algorithm] = (scores.loc['#TP',algorithm]+scores.loc['#TN',algorithm])/(scores.loc['#TP',algorithm]+scores.loc['#TN',algorithm]+scores.loc['#FN',algorithm]+scores.loc['#FP',algorithm])
                 '''
-                    Condição para evitar divisoes por zero
+                    Condition to avoid divison by zero
                 '''
                 if (scores.loc['#TP',algorithm] == 0 and scores.loc['#FP',algorithm]== 0) or (scores.loc['#FN',algorithm] == 0 and scores.loc['#TP',algorithm]==0):
                     scores.at['Precision',algorithm]= 0
@@ -610,7 +602,7 @@ def result_analysis(df, file, windows, view, day, df_features):
                     scores.at['Recall',algorithm] = scores.loc['#TP',algorithm]/(scores.loc['#TP',algorithm]+scores.loc['#FN',algorithm])
                     scores.at['F1'] = 2*(scores.loc['Precision',algorithm]*scores.loc['Recall',algorithm])/(scores.loc['Recall',algorithm]+scores.loc['Precision',algorithm])
             '''
-                Aplicar LOF ao cluster de outliers identificado pelo numero '100'
+                Apply LOF to outlier cluster identified as "100"
             '''
             lof_scores = pd.DataFrame(index=lof_clusters.index, columns=['score'])
             if len(lof_clusters.index) <= 5 or len(lof_clusters.index) == 0:
@@ -621,13 +613,13 @@ def result_analysis(df, file, windows, view, day, df_features):
                 lof.fit_predict(df_features.loc[lof_clusters.index])
                 lof_scores.at[:,'score'] = lof.negative_outlier_factor_
             ''' 
-                O score do LOF é negativo, quanto mais negativo maior a probabilidade de ser um outlier...
-                entao o min() corresponde a entidade identificada com maior probabilidade de ser outlier...
+                LOF score is negative, the more negative the greater the probability of being an outlier
+                then the min () corresponds to the identified entity most likely to be outlier
             '''
             scores.at['Max_score'] = [0,lof_scores.min().values,0]
-            '''
-                Para cada atacante retira o score LOF,
-                Na analise compara-se o MAX_SCORE com os scores de cada atacante
+'''
+                Retrives LOF score for each attacker,
+                In the analysis, the MAX_SCORE is compared with the scores of each victim
             '''
             for attacker in attackers[str(day)]:
                 if attacker in lof_scores.index:
@@ -645,11 +637,11 @@ def result_analysis(df, file, windows, view, day, df_features):
 def main():
     global save_clusters_attacker, save_clusters_victim
     '''
-        Ficheiros csv com as features
+        CSV file with features
     '''
     files_features = sys.argv[3:]
     '''
-        janela de tempo a analiar
+        Timewindow to analyze
     '''
     day = int(sys.argv[1])
     window = int(sys.argv[2])
@@ -657,20 +649,17 @@ def main():
         tempo =time.time()
         df_timestamp = []
         '''
-            Carrega o ficheiro por 'partes/chunk' para uma dataframe
+            Loads the file by chunks to dataframe
         '''
         for chunk in pd.read_csv(file, sep=',', dtype='object', chunksize=100000):
             df_timestamp.append(chunk)
 
         df_timestamp = pd.concat(df_timestamp)
-        
-        #print(df_timestamp.head(5))
         print("Donne reading csv")
-        #print(time.time()-tempo)
         df_timestamp.set_index(df_timestamp.iloc[:,0], inplace=True)
         df_timestamp.drop(['Unnamed: 0'], axis=1 , inplace=True)
         del df_timestamp.index.name
-        # Aplicar algoritmos de clustering
+        # Apply clustering algorithms
         if len(df_timestamp.index) > 0:
             src_df, dst_df = [],[]
             for ind in df_timestamp.index:
@@ -680,9 +669,6 @@ def main():
                     dst_df.append(ind)
             src_df = df_timestamp.loc[src_df]
             dst_df = df_timestamp.loc[dst_df]
-            # i = datetime.strptime(str(i),"%Y-%m-%d %H:%M:%S")
-            # i = i.timestamp()-(4*60*60)
-            # i = datetime.fromtimestamp(i)
             if len(src_df.index) >= 30: # LD estava 10
                 clusters_src = clustering(src_df, file, day, window)
                 result_analysis(clusters_src, file, window, 'internal', day, src_df)
@@ -694,16 +680,12 @@ def main():
                 result_analysis(clusters_dst, file, window, 'external', day, dst_df)
             else:
                 print('DST not saved')
-            # reset nos indices para poder guardar no formato .feather
-            # Tot.reset_index(inplace=True)
-            # # Guardar os features extraidas 
-            # Tot.to_csv('day'+str(day)+'/'+str(window)+'min/'+str(window)+'_features_'+str(day)+'_'+str(k)+'.csv')
         else:
             print("Time stamp not found")
         '''
-        Guarda em ficheiros CSV os resultados;
-        As pastas para cada dia, janela de tempo, e abordagem devem ser criadas antes de excutar o script
-        Na pasta: exemplo para dia 2 - ../dia2/10min/results_dynamic/..._scores_victims_new.csv
+            Store results in CSV files;
+            Folders for each day, timewindow and approaches must be created before execute the script
+            Example for day 2 - ../dia2/10min/results_dynamic/..._scores_victims_new.csv
         '''
     if len(score_victims) > 0:
         pd.concat(score_victims).to_csv('day'+str(day)+'/'+str(window)+'min/results_dynamic/'+str(file).split('.')[0].split('/')[-1]+'_scores_victims_new.csv', header=True)
