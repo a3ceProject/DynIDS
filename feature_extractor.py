@@ -1,7 +1,7 @@
 '''
-    Script para aplicar clustering com as features dinamicas;
-    Como usar:  pyhton3 feature_extractor.py <janela de tempo> <caminho para ficheiro com flows>
-    Exemplo: time python3 feature_extractor.py old_wednesday_16_02_18.csv
+    Script to apply feature extraction;
+    How to use:  pyhton3 feature_extractor.py <path to flow files>
+    Example: time python3 feature_extractor.py old_wednesday_16_02_18.csv
 '''
 import sys
 import time
@@ -9,7 +9,6 @@ import pandas as pd
 import numpy
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering, ward_tree
 from sklearn.preprocessing import MinMaxScaler
-#import hdbscan as hd
 from pathlib import Path #valente2
 import os #valente2
 import gc
@@ -18,7 +17,7 @@ from datetime import datetime
 columns_com_prefixo = [] #valente_2
 
 '''
-    Funcao para extrair do nome do ficheiro o respetivo dia
+    Function to extract the day from file name 
 '''
 def get_day(file):
     if '14-02-18' in file:
@@ -43,10 +42,9 @@ def get_day(file):
         day=10
     return day
 
-
 '''
-    Funcao para restringir as janelas de tempo ao respetivo dia,
-    porque existem eventos com datas aneriores ao dia em análise.
+    Function to restrict the timewindows to each day,
+    because there are flows with later dates than the day in analysis
 '''
 def date(day):
     start_date = 0
@@ -60,14 +58,14 @@ def date(day):
         start_date = datetime(2018,2,15,0,0,0)
         end_date = datetime(2018,2,16,0,0,0)
     if day==3:
-        # FRIDAY 16-02-2018    Dia com problemas... muito lento
+        # FRIDAY 16-02-2018    
         start_date = datetime(2018,2,16,0,0,0)
         end_date = datetime(2018,2,17,0,0,0)    
     if day==4:
         # TUESDAY 20-02-2018 machine3
         start_date = datetime(2018,2,20,0,0,0)
         end_date = datetime(2018,2,21,0,0,0)
-    if day==5:  # leva muito tempo
+    if day==5: 
         # WEDNESDAY 21-02-2018 
         start_date = datetime(2018,2,21,0,0,0)
         end_date = datetime(2018,2,22,0,0,0)
@@ -93,8 +91,8 @@ def date(day):
         end_date = datetime(2018,3,3,0,0,0)
     return start_date, end_date
 
-# Função para extração dos portos a ser considerados features
-def get_ports(df): # SrcPortContacted, SrcPortUsed, DstPortContacted, DstPortUsed, mode_ports):
+# Function to port extraction to be consider features
+def get_ports(df): 
     #list_ports = [21,22,23,25,53,67,68,80,123,135,137,138,139,194,443,445,500,1900,1920,2181,2816,3128,3389,5355,6188,6667,7112,8080,8443,10397,27017,30303,50010]  #LD
     #list_ports_reia = [80, 194, 25, 22]   #LD
     #portos_ataques_especificos = [21]   #LD
@@ -107,7 +105,7 @@ def get_ports(df): # SrcPortContacted, SrcPortUsed, DstPortContacted, DstPortUse
     list_ports = []
     portosSrc = []
     portosDst = []       
-    method = 3  # mothod == 1 Outgene;  method == 2 5050; method == 3  top,uncommon,min  ; method == 4 teste
+    method = 3  # mothod == 1 Outgene;  method == 2 5050; method == 3  top,uncommon,min  ; method == 4 test
     num_portos = 100
     global columns_com_prefixo #valente_2
     columns_com_prefixo = []
@@ -214,9 +212,7 @@ def get_ports(df): # SrcPortContacted, SrcPortUsed, DstPortContacted, DstPortUse
             portosDst.append(j+'DstFrom') #Valente
     return portosSrc, portosDst
 
-
-
-# função para extrair os valores de cada feature relacionada com os portos do ponto de vista da Source
+# function to extract values of each feature related with ports from source point of view
 def get_src_pkts(df, list_ports):
     df = df.groupby('Src IP')
     new_df = pd.DataFrame(0,index=df.groups, columns=list_ports)
@@ -240,7 +236,7 @@ def get_src_pkts(df, list_ports):
     new_df = new_df.loc[:, (new_df != 0).any(axis=0)]
     return new_df
 
-# função para extrair os valores de cada feature relacionada com os portos do ponto de vista da Destination
+# function to extract values of each feature related with ports from destination point of view
 def get_dst_pkts(df, list_ports):
     #df.set_index('Dst IP')
     df = df.groupby('Dst IP')
@@ -270,7 +266,7 @@ def get_dst_pkts(df, list_ports):
     new_df = new_df.loc[:, (new_df != 0).any(axis=0)]
     return new_df
 
-
+# Function to replace columns name 
 def replace_columns(old_columns): #valente_2
     global columns_com_prefixo
     if len(columns_com_prefixo) == 0:
@@ -286,7 +282,6 @@ def replace_columns(old_columns): #valente_2
     print (prefix_columns_partial)
     return prefix_columns_partial
 
-
 def main():
     files = sys.argv[1:]
     dir_path = os.path.dirname(os.path.realpath(__file__)) #valente2
@@ -296,16 +291,15 @@ def main():
         for chunk in pd.read_csv(file, sep=',', dtype='object', chunksize=100000):
             df_timestamp.append(chunk)
         df_timestamp = pd.concat(df_timestamp)
-        #print(df_timestamp.head(5))
         print("Donne reading csv")
         print(time.time()-tempo)
-        # preencher campos a NaN
+        # fill NaN fields
         df_timestamp = df_timestamp.fillna(0)
-        # remover as linhas de cabeçalho duplicado
+        # remove lines from duplicate header
         df_timestamp = df_timestamp[df_timestamp['Src Port'].map(lambda x: str(x)!="Src Port")]
-        # remover linhas sem timestamp
+        # remove lines without timestamp
         df_timestamp = df_timestamp[df_timestamp['Timestamp'].map(lambda x: str(x)!='0')]
-        # converter os tipos de dados
+        # convert all types of data
         df_timestamp['Src Port'] = df_timestamp['Src Port'].astype('int64')
         df_timestamp['Dst Port'] = df_timestamp['Dst Port'].astype('int64')
         df_timestamp['Tot Fwd Pkts'] = df_timestamp['Tot Fwd Pkts'].astype('int64')
@@ -316,7 +310,6 @@ def main():
         timestamp = df_timestamp['Timestamp'].tolist()
         timestamp = pd.to_datetime(timestamp, format="%d/%m/%Y %I:%M:%S %p")
         df_timestamp['Timestamp'] = timestamp
-        # del timestamp
 
         print("time converted")
         k,m=0,0
@@ -328,9 +321,6 @@ def main():
             for i in grouped.indices.keys(): #valente
                 if (i-start_date).total_seconds()>=0 and (i-end_date).total_seconds()<=86400:
                     print(str(i))
-                # Estas datas tem +4 horas porque lêm os ficheiros originados pelo CICFlowMeter
-                # Se os dados forem lidos dos ficheiros ...features(..).csv tem de se reduzir 4h nestas datas, 
-                # para os scripts pandas_FlowReia e pandas_FlowReduced não precisa.
                 # if str(i) in [
                 #         '2018-02-14 04:00:00', # 24H
                 #         '2018-02-14 12:00:00','2018-02-14 16:00:00',# 4H
@@ -403,100 +393,77 @@ def main():
                 #         '2018-03-02 18:50:00','2018-03-02 19:10:00','2018-03-02 19:20:00','2018-03-02 19:30:00','2018-03-02 19:40:00','2018-03-02 19:50:00','2018-03-02 20:10:00'
                 #         ]:
                     dataframe = grouped.get_group(i)
-                    # remover a coluna do timestamp
+                    # remove timestamp column
                     dataframe = dataframe.drop(columns='Timestamp')
-                    # selecionar apenas os flows que tem máquinas internas ou como origem, ou como destino
+                    # select onlyy the flows with internal machines as source or destination 
                     df_internal = dataframe[dataframe[['Src IP','Dst IP']].applymap(lambda x: '172.31.' in str(x))].dropna(how='all')
                     dataframe = dataframe.loc[df_internal.index]
                     day = get_day(file)
 
                     if (len(dataframe.index) >= 10):
-                    # Extrair portos distintos usados para realizar comunicações
+                    # FROM SOURCE POINT OF VIEW 
+                    # Extract distinct ports used for communications
                         SrcPortUsed = dataframe[['Src Port','Src IP']].groupby('Src IP', axis=0, as_index=True).nunique()
                         SrcPortUsed = SrcPortUsed['Src Port']
-                    # Extrair portos distintos contactados
+                    # Extract distinct ports contacted 
                         SrcPortContacted = dataframe[['Dst Port','Src IP']].groupby('Src IP', axis=0, as_index=True).nunique()
                         SrcPortContacted = SrcPortContacted['Dst Port']
-                    # Extrair diferentes IPs de destino contactados
+                    # Extract diferent detination IPs contacted 
                         SrcIPContacted    = dataframe[['Dst IP','Src IP']].groupby('Src IP', axis=0, as_index=True).nunique()
                         SrcIPContacted = SrcIPContacted['Dst IP']
-                    # Extrair numero total do tamanho de pacotes enviados
+                    # Extract total # of sent packets size 
                         SrcTotLenSent = dataframe[['TotLen Fwd Pkts','Src IP']].groupby('Src IP', axis=0, as_index=True).sum()
-                    # Extrair numero total do tamanho de pacotes recebidos
+                    # Extract total # of received packets size 
                         SrcTotLenRcv = dataframe[['TotLen Bwd Pkts','Src IP']].groupby('Src IP', axis=0, as_index=True).sum()
-                    # Extrair numero total de sessões estabelecidas LD
+                    # Extract # of total sessions established LD
                         SrcTotConn = dataframe[['Dst IP','Src IP']].groupby('Src IP', axis=0, as_index=True).count()
-
                         print("Src Donne")
-
-                    #  Extrair portos distintos usados para realizar comunicações
+                        
+                    # FROM DESTINADION POINT OF VIEW
+                    #  Extract distinct ports used to perform communications
                         DstPortUsed = dataframe[['Dst Port','Dst IP']].groupby('Dst IP', axis=0, as_index=True).nunique()
                         DstPortUsed = DstPortUsed['Dst Port']
-                    # Extrair portos distintos contactados
+                    # Extract distinct ports contacted 
                         DstPortContacted = dataframe[['Src Port','Dst IP']].groupby('Dst IP', axis=0, as_index=True).nunique()
                         DstPortContacted = DstPortContacted['Src Port'] 
-                    #  Extrair diferentes IPs de destino contactados
+                    # Extract diferent detination IPs contacted
                         DstIPContacted = dataframe[['Src IP','Dst IP']].groupby('Dst IP', axis=0, as_index=True).nunique()
                         DstIPContacted = DstIPContacted['Src IP']
-                    # Extrair numero total do tamanho de pacotes enviados 
+                    # Extract total # of sent packets size 
                         DstTotLenSent = dataframe[['TotLen Bwd Pkts','Dst IP']].groupby('Dst IP', axis=0, as_index=True).sum()
-                    # Extrair numero total do tamanho de pacotes recebidos 
+                    # Extract total # of received packets size 
                         DstTotLenRcv = dataframe[['TotLen Fwd Pkts','Dst IP']].groupby('Dst IP', axis=0, as_index=True).sum()
-                    # Extrair numero total de sessões recebidas LD
+                    # Extract # of total sessions established  LD
                         DstTotConn = dataframe[['Src IP','Dst IP']].groupby('Dst IP', axis=0, as_index=True).count()
 
-
                         print("Dst Donne")
-                    #print(DstPortUsed.head(5))
-
-                    # df.reset_index(inplace=True)
-                    # df.rename({'index':'Dst IP'}, axis='columns', inplace=True)
-                    # del df.index.name
-                    # decomentar para utilizar a moda do numero de portos contactados/usados
-                    # mode_ports = int((SrcPortUsed.mode().max()+SrcPortContacted.mode().max()+DstPortContacted.mode().max()+DstPortUsed.mode().max()))
-                    # if mode_ports == 'nan':
-                    #     mode_ports =1
-                    # print('mean ports - ',mode_ports)
-
-                    # Extrair os portos que cumprem o critério de selecao
+                        
                         dataframe.set_index(['Src IP'], inplace=True)
-                    # descomentar 'SrcPortContacted, etc..' para usar a moda dos portos contactados
-                        port_list_src, port_list_dst = get_ports(dataframe[['Src Port','Dst Port']]) # SrcPortContacted, SrcPortUsed, DstPortContacted, DstPortUsed, mode_ports)
-                    #port_list = get_ports(df[['Src Port','Dst Port']])
-                    #print('port_list len - ', len(port_list))
+                        port_list_src, port_list_dst = get_ports(dataframe[['Src Port','Dst Port']]) 
+                     # Setting conditions to perform port extraction by chunks
                         lenght = len(dataframe) #valente
-                        # print(lenght) #valente
                         interval = 0 #valente_2
-                        if lenght > 10000:  #valente4 - até linha 504
+                        if lenght > 10000:  #valente4 
                             while lenght>=1000:  #valente
                                 lenght=int(lenght/2)  #valente
                                 interval+=1  #valente
-                        # print(interval)  #valente
                             sub_dataframes_index = numpy.linspace(0,len(dataframe),interval, dtype='int64') #valente
-                    #print(sub_dataframes_index)
                             low_chunk = 0
                             srcpkt_list, dstpkt_list = [], []
                             for chunk in sub_dataframes_index[1:]:
                                 sub_dataframe = dataframe.iloc[low_chunk:chunk]
                                 low_chunk = chunk
-                        # Extrair os pacotes enviados e recebidos em cada porto do ponto de vista da origem e do destino
+                        # Extract packets sent and received in each port from source and destination point of view
                                 SrcPkt = get_src_pkts(sub_dataframe, port_list_src)
                                 srcpkt_list.append(SrcPkt)
                                 sub_dataframe.reset_index(inplace=True)
                                 sub_dataframe.set_index(['Dst IP'], inplace=True)
                                 DstPkt = get_dst_pkts(sub_dataframe, port_list_dst)
                                 dstpkt_list.append(DstPkt)
-                        #if len(srcpkt_list)>1:
                             SrcPkt = pd.concat([srcpkt for srcpkt in srcpkt_list], axis=0, sort=False)
-                        #else:
-                            #SrcPkt = pd.DataFrame(srcpkt_list)
                             SrcPkt = SrcPkt.groupby(SrcPkt.index, axis=0, as_index=True).sum()
                             print("Src pkts extracted")
-                        #if len(dstpkt_list)>1:
                             DstPkt = pd.concat([dstpkt for dstpkt in dstpkt_list], axis=0, sort=False)
-                        #else:
-                        #    DstPkt = dstpkt_list
-                        #    print(DstPkt.columns)
                             DstPkt = DstPkt.groupby(DstPkt.index, axis=0, as_index=True).sum()
                             print("Dst pkts extracted")
                         else:
@@ -504,69 +471,45 @@ def main():
                         	print("Src pkt extracted without chunks")
                         	DstPkt = get_dst_pkts(dataframe, port_list_dst)
                         	print("Dst pkt extracted without chunks") 
-                    # # Extrair os pacotes enviados e recebidos em cada porto do ponto de vista da origem e do destino
-                    # SrcPkt = get_src_pkts(dataframe, port_list_src)
-                    # print ("extracao de src_packets concluida")
-                    # dataframe.reset_index(inplace=True)
-                    # dataframe.set_index(['Dst IP'], inplace=True)
-                    # DstPkt = get_dst_pkts(dataframe, port_list_dst)
-                    # print ("extracao de dst_packets concluida")
-                    # Concatenacao das features todas
+                        # Concatenation of all features 
                         if len(SrcPkt)>=1 or len(DstPkt)>=1:
                             Tot = pd.concat([SrcIPContacted, SrcPortUsed, SrcPortContacted, SrcTotLenRcv, SrcTotLenSent, SrcTotConn, SrcPkt, DstIPContacted, DstPortUsed, DstPortContacted, DstTotLenRcv, DstTotLenSent, DstTotConn, DstPkt], axis=1,  sort=False) # LD removi  axis=1 , sort=False)
-                        # Cria uma lista com os nomes das colunas ordenados de acordo com a concatenação 
+                        # Creates a list with column names sorted by concatenation order
                             src_columns = SrcPkt.columns.to_list()
                             dst_columns = DstPkt.columns.to_list()
                             prefix_columns=['SrcIPContacted', 'SrcPortUsed', 'SrcPortContacted', 'SrcTotLenRcv', 'SrcTotLenSent', 'SrcConnMade']+replace_columns(src_columns) #valente_2
                             prefix_columns+=(['DstIPContacted', 'DstPortUsed', 'DstPortContacted', 'DstTotLenRcv', 'DstTotLenSent', 'DstTotConn']+replace_columns(dst_columns)) #valente_2
                             print (Tot.columns)
-                            print ("VE ISTO")
                             print (prefix_columns)
                             Tot.columns = prefix_columns #valente_2
                             del prefix_columns, src_columns, dst_columns
                             gc.collect()
-                        # columns = ['SrcIPContacted', 'SrcPortUsed', 'SrcPortContacted', 'SrcTotLenRcv', 'SrcTotLenSent', 'SrcTotConn'] #LD
-                        # columns = columns + src_columns
-                        # columns = columns + ['DstIPContacted', 'DstPortUsed', 'DstPortContacted', 'DstTotLenRcv', 'DstTotLenSent', 'DstTotConn'] #LD
-                        # columns = columns + dst_columns
                         else:
                             Tot = pd.concat([SrcIPContacted, SrcPortUsed, SrcPortContacted, SrcTotLenRcv, SrcTotLenSent, SrcTotConn, DstIPContacted, DstPortUsed, DstPortContacted, DstTotLenRcv, DstTotLenSent, DstTotConn], axis=1, sort=False) # LD removi  axis=1 , sort=False)
-                        # Cria uma lista com os nomes das colunas ordenados de acordo com a concatenação 
                             columns = ['SrcIPContacted', 'SrcPortUsed', 'SrcPortContacted', 'SrcTotLenRcv', 'SrcTotLenSent','SrcTotConn','DstIPContacted', 'DstPortUsed', 'DstPortContacted', 'DstTotLenRcv', 'DstTotLenSent', 'DstTotConn']
-                    # Atribui os nomes das colunas da dataframe com base na lista criada anteriormente
+                    # Replace dataframe column names by the names stores previosly in a list
                             Tot.columns = columns #valente_2
                             del columns
                         Tot.fillna(value=0, inplace=True)
                         del SrcIPContacted, SrcPortContacted, SrcPortUsed, SrcTotLenRcv, SrcTotLenSent, SrcPkt, SrcTotConn, DstIPContacted, DstPortUsed, DstPortContacted, DstTotLenRcv, DstTotLenSent, DstPkt, DstTotConn #LD
                         gc.collect()
 
-                    #print ("shape antes remoçao 0:"+Tot.shape)
-                    #apagar colunas a zero LD
-                    #Tot = Tot.loc[:, (Tot != 0).any(axis=0)]
-                    #print ("shape depois remoçao 0:"+Tot.shape)
-
-                    # Aplicar algoritmos de clustering
+                    # Save features file
                         if len(Tot.index) > 0:
                             i = datetime.strptime(str(i),"%Y-%m-%d %H:%M:%S")
                             i = i.timestamp()-(4*60*60)
                             i = datetime.fromtimestamp(i)
                             print(str(i).split(' ')[-1]) #valente
-                        # # Guardar os features extraidas
                             Path(dir_path+'/day'+str(day)+'/'+str(timeWindows)+'min/').mkdir(parents=True, exist_ok=True) #valente2
                             Tot.to_csv('day'+str(day)+'/'+str(timeWindows)+'min/'+str(timeWindows)+'_features_'+str(day)+'_'+str(i).split(' ')[-1]+'.csv') #valente - guardar ficheiros com hora no nome
                         else:
                             print('entities not found')
                         print("Donne")
-                        # saved_groups.write(str(i))
-                        # saved_groups.write(',')
-                        # saved_groups.write(str(k))
-                        # saved_groups.write('\n')
                         k+=1
                         del Tot
                         gc.collect()
                     else:
                    	    print('Not enough entities')
-            #saved_groups.close()
     del grouped
     print(str(file) + ' extracted')
 
