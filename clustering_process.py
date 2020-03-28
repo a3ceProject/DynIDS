@@ -5,13 +5,13 @@
 '''
 import sys 
 import time
-import pandas as pd # Data manipulation
+import pandas as pd 
 from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering # Clustering Algorithms
 from sklearn.preprocessing import MinMaxScaler # Data normalization libraries
 from sklearn.neighbors import LocalOutlierFactor, NearestNeighbors
 import numpy as np
-import plotly  #LD Heatmap
-import plotly.graph_objs as go #LD Heatmap
+import plotly  
+import plotly.graph_objs as go 
 import gc # garbage colector to clean the memory
 import joblib
 from datetime import datetime
@@ -155,7 +155,6 @@ def distances_epsilon(data):
     Function to generate clustering heatmaps
 '''
 def heat(name, newdf, file, day, window):
-    #Number of entities per cluster:
     out = newdf.groupby(['clusters',newdf.index]).count()
     n_clusters = out.index.to_frame(True, ['clusters','IPs'])
     if (len(newdf.index)> 600):
@@ -169,9 +168,6 @@ def heat(name, newdf, file, day, window):
     # delete columns without diferences
     toz = toz.loc[:, (toz > 0.2).any(axis=0)]
     print ("Start plot of matrix of shape: browser")
-#    toz = toz.reindex(sorted(toz.columns, key=lambda x: str(x[-5])), axis=1)
-#    toz = toz.reindex(sorted(toz.columns, key=lambda x: str(x[1:])), axis=1)
-#    print (toz.shape)
 
     data1 = [go.Heatmap(z=toz.values.tolist(),
                         y= list(toz.index.values),
@@ -179,11 +175,6 @@ def heat(name, newdf, file, day, window):
                         colorscale='Viridis')]
 
     plotly.offline.plot(data1, filename = 'day'+str(day)+'/'+str(window)+'min/results_dynamic/'+ aux +'_'+ os.path.basename(file) + 'heatmap.html')
-#    sns.heatmap(toz, cmap='RdYlGn_r', linewidths=0.5, annot=True)
-   
-#    sns.heatmap(toz, annot=True)
-#    plt.show()
-    #print(newdf.loc[["'10.105.1.131'"],['clusters']])
     newdf = newdf.drop('clusters',axis=1)
     return newdf
 
@@ -213,7 +204,7 @@ def clustering(dataframe, file, day, window):
         Other range can be used with MinMaxScaler(range=[-1,1])
     '''
     
-    #delete zero columns LD
+    #delete zero columns
     dataframe = dataframe.loc[:, (dataframe != 0).any(axis=0)]
     print ("Start clustering matrix of shape:")
     print (dataframe.shape)
@@ -258,7 +249,7 @@ def clustering(dataframe, file, day, window):
     '''
     auxheat = pd.DataFrame(data=norm, columns=dataframe.columns, index=dataframe.index)
     auxheat['clusters'] = kmeans
-    X = heat('KMEANS',auxheat, file, day, window)   #heatmap
+    X = heat('KMEANS',auxheat, file, day, window) 
     '''
         Creates DBSCAN object and determine clusters with normalized data,
         From DBSCAN method:
@@ -348,9 +339,9 @@ def result_analysis(df, file, windows, view, day, df_features):
         '''
             Stores the total number of entities for each cluster and each algorithm
         '''
-        ncluster_kmeans = df.groupby('cluster_kmeans')['cluster_dbscan'].count().to_frame() #.to_csv(file_prefix+'_NCLUSTER_kmeans.csv', header=True)
-        ncluster_dbscan = df.groupby('cluster_dbscan')['cluster_kmeans'].count().to_frame() #.to_csv(file_prefix+'_NCLUSTER_dbscan.csv', header=True)
-        ncluster_agglomerative = df.groupby('cluster_agglomerative')['cluster_kmeans'].count().to_frame() #.to_csv(file_prefix+'_NCLUSTER_aglomerative.csv', header=True)
+        ncluster_kmeans = df.groupby('cluster_kmeans')['cluster_dbscan'].count().to_frame() 
+        ncluster_dbscan = df.groupby('cluster_dbscan')['cluster_kmeans'].count().to_frame() 
+        ncluster_agglomerative = df.groupby('cluster_agglomerative')['cluster_kmeans'].count().to_frame()
         '''
             Select the clusters with # of entities <= 1 and outlier clusters in desity based algorithms (DBSCAN)
         '''
@@ -481,7 +472,7 @@ def result_analysis(df, file, windows, view, day, df_features):
                 LOF score is negative, the more negative the greater the probability of being an outlier
                 then the min () corresponds to the identified entity most likely to be outlier
             '''
-            scores.at['Max_score'] = [0,lof_scores.min().values,0] # porque os resultados são negativos
+            scores.at['Max_score'] = [0,lof_scores.min().values,0] 
             '''
                 Retrives LOF score for each victim,
                 In the analysis, the MAX_SCORE is compared with the scores of each victim
@@ -541,8 +532,6 @@ def result_analysis(df, file, windows, view, day, df_features):
                         attackers_agglomerative.at[cluster_results_attacker.loc[attacker,'cluster_agglomerative'],'agglomerative_size'] = cluster_results_attacker.loc[attacker]['cluster_agglomerative_size']
             attackers_agglomerative['window'] = 1111
             attackers_agglomerative.fillna(value=0, inplace=True)
-            # attackers_hdbscan['window'] = timeWindow
-            # attackers_hdbscan.fillna(value=0, inplace=True)
             attackers_dbscan['window'] = 1111
             attackers_dbscan.fillna(value=0, inplace=True)
             attackers_kmeans['window'] = 1111
@@ -552,11 +541,9 @@ def result_analysis(df, file, windows, view, day, df_features):
             '''
             scores['kmeans'] = attackers_kmeans['attackers_kmeans']
             scores['dbscan'] = attackers_dbscan['attackers_dbscan']
-            # scores['hdbscan'] = attackers_hdbscan['attackers_hdbscan']
             scores['agglomerative'] = attackers_agglomerative['attackers_agglomerative']
             scores.at['tot_kmeans'] = scores.iloc[:len(attackers_kmeans.index)]['kmeans'].sum()
             scores.at['tot_dbscan'] = scores.iloc[:len(attackers_dbscan.index)]['dbscan'].sum()
-            # scores.at['tot_hdbscan'] = scores.iloc[:len(attackers_hdbscan.index)]['hdbscan'].sum()
             scores.at['tot_agglomerative'] = scores.iloc[:len(attackers_agglomerative.index)]['agglomerative'].sum()
             scores.fillna(value=0, inplace=True)
             '''
