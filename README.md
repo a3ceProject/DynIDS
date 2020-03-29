@@ -29,8 +29,10 @@ The features can be selected from 4 methods:
 NOTE: to change the method go to line 110 in the script, change and save it.
 
 Usage example (from command line):
-Linux/MAC OS:
-  - python3 feature_extractor.py 14-02-18_ftp_bruteoforce.csv
+
+  Linux/MAC OS:
+    
+    - python3 feature_extractor.py 14-02-18_ftp_bruteoforce.csv
   
 ################## clustering_process.py ##################
 
@@ -58,8 +60,10 @@ To evaluate the approaches some metrics were defined:
 The output files contain the metrics evaluation to the entities considered outliers (attackers and/or victims).
 
 Usage example (from command line):
-Linux/MAC OS:
-  - python3 clustering_process.py day1/10min/*.csv   # To analyse the features of all 10min timewindows
-  - python3 clustering_process.py day1/10min/10_features_1_10/00/00.csv # To analyse a specific 10min timewindow
+  
+  Linux/MAC OS:
+    
+    - python3 clustering_process.py day1/10min/*.csv   # To analyse the features of all 10min timewindows
+    - python3 clustering_process.py day1/10min/10_features_1_10/00/00.csv # To analyse a specific 10min timewindow
   
   
