@@ -17,10 +17,15 @@ The feature_extractor.py script is used to extract the features from a file CSV 
 This script receives the CSV file as input (ex:14-02-18_ftp_bruteoforce) and returns CSV files, one per timewindow, with the features extracted and organized by entities (IP addresses).
 
 The features can be selected from 4 methods:
+
   1 - Outgene features
+
   2 - 50-50
+  
   3 - Top-Uncommmon-Min (default) 
+  
   4 - Test
+
 NOTE: to change the method go to line 110 in the script, change and save it.
 
 Usage example (from command line):
@@ -33,14 +38,14 @@ The clustering_process.py script is used to perform clustering using as input th
 This script receives the CSV files with features (ex:10_features_1_10/00/00.csv) and returns CSV files with clustering results.
 
 To evaluate the approaches some metrics were defined:
-    -    True Positices (TP) -  entities correctly classified as outliers;
-    -    False Positives (FP) - entities wrongly classified as outliers;
-    -    True Negatives (TN) - entities correctly classified as 'normal';
-    -    False Negatives (FN) - entities wrongly classified as 'normal';
-    -    Accuracy - (TP+TN)/(TP+TN+FP+FN);
-    -    Precision - TP/(TP+FP);
-    -    Recall - TP/(TP+FN);
-    -    F1 - 2*(Precision*Recall)/(Precision+Recall).
+    -    True Positices (TP) -  entities correctly classified as outliers
+    -    False Positives (FP) - entities wrongly classified as outliers
+    -    True Negatives (TN) - entities correctly classified as 'normal'
+    -    False Negatives (FN) - entities wrongly classified as 'normal'
+    -    Accuracy - (TP+TN)/(TP+TN+FP+FN)
+    -    Precision - TP/(TP+FP)
+    -    Recall - TP/(TP+FN)
+    -    F1 - 2*(Precision*Recall)/(Precision+Recall)
     
 The output files contain the metrics evaluation to the entities considered outliers (attackers and/or victims).
 
