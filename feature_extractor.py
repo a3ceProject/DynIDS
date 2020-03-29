@@ -93,9 +93,7 @@ def date(day):
 
 # Function to port extraction to be consider features
 def get_ports(df): 
-    #list_ports = [21,22,23,25,53,67,68,80,123,135,137,138,139,194,443,445,500,1900,1920,2181,2816,3128,3389,5355,6188,6667,7112,8080,8443,10397,27017,30303,50010]  #
-    
-    
+    #list_ports = [21,22,23,25,53,67,68,80,123,135,137,138,139,194,443,445,500,1900,1920,2181,2816,3128,3389,5355,6188,6667,7112,8080,8443,10397,27017,30303,50010]
     #list_ports_reia = [80, 194, 25, 22]  
     #portos_ataques_especificos = [21]   
     most_used_ports_dst = df['Dst Port'].value_counts()
@@ -116,8 +114,6 @@ def get_ports(df):
     	print ("Outgene ports selected ______________________________")
     
     if method == 2:
-    	#most_used_ports_src = df['Src Port'].value_counts()
-    	#most_used_ports = most_used_ports_dst.append(most_used_ports_src)
     	for i in most_used_ports.sort_values(ascending=False).keys():   
     		if len(list_ports)<=num_portos/2:  #LD  num_portos 							#detects top talkers
     			if i not in list_ports:
@@ -237,7 +233,6 @@ def get_src_pkts(df, list_ports):
 
 # function to extract values of each feature related with ports from destination point of view
 def get_dst_pkts(df, list_ports):
-    #df.set_index('Dst IP')
     df = df.groupby('Dst IP')
     new_df = pd.DataFrame(0, index=df.groups, columns=list_ports)
     for i in df.groups:
@@ -265,13 +260,11 @@ def replace_columns(old_columns):
     global columns_com_prefixo
     if len(columns_com_prefixo) == 0:
         return old_columns
-    print (old_columns)
     prefix_columns_partial = []
     for col_simple in old_columns:
         for col_prefix in columns_com_prefixo:
             if (str(col_prefix).find(col_simple) != -1) and len(col_prefix)==(len(col_simple)+1):
                 prefix_columns_partial.append(col_prefix)
-    print (prefix_columns_partial)
     return prefix_columns_partial
 
 def main():
@@ -399,8 +392,6 @@ def main():
                             dst_columns = DstPkt.columns.to_list()
                             prefix_columns=['SrcIPContacted', 'SrcPortUsed', 'SrcPortContacted', 'SrcTotLenRcv', 'SrcTotLenSent', 'SrcConnMade']+replace_columns(src_columns)
                             prefix_columns+=(['DstIPContacted', 'DstPortUsed', 'DstPortContacted', 'DstTotLenRcv', 'DstTotLenSent', 'DstTotConn']+replace_columns(dst_columns)) 
-                            print (Tot.columns)
-                            print (prefix_columns)
                             Tot.columns = prefix_columns 
                             del prefix_columns, src_columns, dst_columns
                             gc.collect()
