@@ -39,12 +39,19 @@ This script receives the CSV files with features (ex:10_features_1_10/00/00.csv)
 
 To evaluate the approaches some metrics were defined:
     -    True Positices (TP) -  entities correctly classified as outliers
+    
     -    False Positives (FP) - entities wrongly classified as outliers
+    
     -    True Negatives (TN) - entities correctly classified as 'normal'
+    
     -    False Negatives (FN) - entities wrongly classified as 'normal'
+    
     -    Accuracy - (TP+TN)/(TP+TN+FP+FN)
+    
     -    Precision - TP/(TP+FP)
+    
     -    Recall - TP/(TP+FN)
+    
     -    F1 - 2*(Precision*Recall)/(Precision+Recall)
     
 The output files contain the metrics evaluation to the entities considered outliers (attackers and/or victims).
