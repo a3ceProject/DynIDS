@@ -8,6 +8,7 @@ Scripts prerequisites:
   - Pandas (https://pandas.pydata.org/getting_started.html)
   - Numpy (https://numpy.org)
   - Sklearn (https://scikit-learn.org/stable/index.html)
+
 You will also need permission to create folders in your working directory.
   
 ################## feature_extractor.py ##################
