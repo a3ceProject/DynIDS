@@ -63,7 +63,8 @@ Usage example (from command line):
   
   Linux/MAC OS:
     
-    - python3 clustering_process.py day1/10min/*.csv   # To analyse the features of all 10min timewindows
-    - python3 clustering_process.py day1/10min/10_features_1_10/00/00.csv # To analyse a specific 10min timewindow
+    - python3 clustering_process.py <day> <timewindow> <features file(s)>
+    - python3 clustering_process.py 1 10 day1/10min/*.csv   # To analyse the features of all 10min timewindows
+    - python3 clustering_process.py 1 10day1/10min/10_features_1_10/00/00.csv # To analyse a specific 10min timewindow
   
   
