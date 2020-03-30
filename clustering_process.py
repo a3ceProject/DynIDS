@@ -10,6 +10,7 @@ from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering # Clustering
 from sklearn.preprocessing import MinMaxScaler # Data normalization libraries
 from sklearn.neighbors import LocalOutlierFactor, NearestNeighbors
 import numpy as np
+import pathlib as Path
 import plotly  
 import plotly.graph_objs as go 
 import gc # garbage colector to clean the memory
@@ -632,6 +633,9 @@ def main():
     '''
     day = int(sys.argv[1])
     window = int(sys.argv[2])
+    dir_path = os.path.dirname(os.path.realpath(__file__))
+    Path(str(dir_path)+'/day'+str(day)+'/'+str(window)+'min/results_dynamic/').mkdir(parents=True, exist_ok=True)
+    
     for file in files_features:
         tempo =time.time()
         df_timestamp = []
