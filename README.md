@@ -1,4 +1,4 @@
-# DefineIDS
+# DynIDS
 
 In this repository you can find 2 scripts (feature_extractor.py and clustering_process.py).
 It also contains a folder with example input and output files.
@@ -20,9 +20,12 @@ The features can be selected from 4 methods:
 
   1 - Outgene features
 
-  2 - 50-50
-  
-  3 - Top-Uncommmon-Min (default) 
+  2 - DYN2_x: features based on the x/2 ports that appear in more
+      more flows and the x/2 ports that appear in fewer flows;
+
+  3 - DYN3_x is the default (the DynIDS algorithm): features based on the x/3
+      ports that appear in more more flows, the x/3 ports that appear
+      in fewer flows, and the x/3 ports used by fewer machines.
   
   4 - Test
 
@@ -57,7 +60,7 @@ To evaluate the approaches some metrics were defined:
     
     - F1 - 2*(Precision*Recall)/(Precision+Recall)
     
-The output files contain the metrics evaluation to the entities considered outliers (attackers and/or victims).
+The output files contain the metrics evaluation to the entities considered outliers (attackers and/or victims). 
 
 Usage example (from command line):
   
