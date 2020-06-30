@@ -29,7 +29,7 @@ The features can be selected from 4 methods:
   
   4 - Test
 
-NOTE: to change the method go to line 110 in the script, change and save it.
+NOTE: to change the method go to line 110 in the script, change and save it. In adition, to change the size of time-windows to extract, change line 303.
 
 Usage example (from command line):
 
