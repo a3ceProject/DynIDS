@@ -69,5 +69,11 @@ Usage example (from command line):
     - python3 clustering_process.py <day> <timewindow> <features file(s)>
     - python3 clustering_process.py 1 10 day1/10min/*.csv   # To analyse the features of all 10min timewindows
     - python3 clustering_process.py 1 10day1/10min/10_features_1_10/00/00.csv # To analyse a specific 10min timewindow
-  
-  
+ 
+
+
+# DynIDS
+
+L. Dias, S. Valente, and M. Correia, “Go With the Flow: Clustering Dynamically-Defined NetFlow Features for
+Network Intrusion Detection with DYNIDS”, In Proceedings of the 19th IEEE International Symposium on Network
+Computing and Applications (NCA), Nov. 2020
