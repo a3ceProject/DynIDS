@@ -60,7 +60,7 @@ To evaluate the approaches some metrics were defined:
     
     - F1 - 2*(Precision*Recall)/(Precision+Recall)
     
-The output files contain the clustering results for both external and internal IPs (both processed separately), and metrics evaluation accortding to the entities considered outliers (attackers and/or victims of CIC-IDS-2018). 
+The output files contain the clustering results for both external and internal IPs (both processed separately), and metrics evaluation according to the entities considered outliers (attackers and/or victims of CIC-IDS-2018). 
 
 Usage example (from command line):
   
