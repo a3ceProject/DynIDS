@@ -29,7 +29,7 @@ The features can be selected from 3 methods:
   
   2 - Flowhacker (DOI: 10.1109/TrustCom/BigDataSE.2018.00086)
 
-NOTE: to change the method and other parameters, run "python3 feature_extractor.py" from command line and folow the instructions.
+NOTE: to change the method and other parameters (e.g., size of time-windows - default is 30 minutes), run "python3 feature_extractor.py" from command line and folow the instructions.
 
 Usage example (from command line):
 
