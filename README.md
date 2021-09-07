@@ -8,39 +8,39 @@ Scripts prerequisites:
   - Pandas (https://pandas.pydata.org/getting_started.html)
   - Numpy (https://numpy.org)
   - Sklearn (https://scikit-learn.org/stable/index.html)
+  - Plotly (https://plotly.com/)
+
 
 You will also need permission to create folders in your working directory.
   
 ################## feature_extractor.py ##################
 
-The feature_extractor.py script is used to extract the features from a file CSV file with traffic information (flows).
-This script receives the CSV file as input (ex:14-02-18_ftp_bruteoforce) and returns CSV files, one per timewindow, with the features extracted and organized by entities (IP addresses).
+The feature_extractor.py script is used to extract the features from a CSV file with traffic information (bidirectional flows).
+This script receives the CSV file as input (e.g., 14-02-18_ftp_bruteforce_partial.csv* ) and returns CSV files (stored in folder "day1"), one per timewindow, with the features extracted and organized by entities (IP addresses).
+*partial file from the CICIDS2018 dataset (https://www.unb.ca/cic/datasets/ids-2018.html). The input file can be from other netflow data (e.g., real scenario), as long as the data format is the same.
 
-The features can be selected from 4 methods:
+The features can be selected from 3 methods:
 
-  1 - Outgene features
+  0 - Outgene features
 
-  2 - DYN2_x: features based on the x/2 ports that appear in more
-      more flows and the x/2 ports that appear in fewer flows;
-
-  3 - DYN3_x is the default (the DynIDS algorithm): features based on the x/3
+  1 - DYN3_x is the default (the DynIDS algorithm): features based on the x/3
       ports that appear in more more flows, the x/3 ports that appear
       in fewer flows, and the x/3 ports used by fewer machines.
   
-  4 - Test
+  2 - Flowhacker (DOI: 10.1109/TrustCom/BigDataSE.2018.00086)
 
-NOTE: to change the method go to line 110 in the script, change and save it. In adition, to change the size of time-windows to extract, change line 303.
+NOTE: to change the method and other parameters, run "python3 feature_extractor.py" from command line and folow the instructions.
 
 Usage example (from command line):
 
   Linux/MAC OS:
     
-    - python3 feature_extractor.py 14-02-18_ftp_bruteoforce.csv
+    - python3 feature_extractor.py 14-02-18_ftp_bruteforce_partial.csv
   
 ################## clustering_process.py ##################
 
 The clustering_process.py script is used to perform clustering using as input the features files created by feature_extractor.py script.
-This script receives the CSV files with features (ex:10_features_1_10/00/00.csv) and returns CSV files with clustering results.
+This script receives the CSV files with features (ex:30_features_1_10/00/00.csv) and returns CSV files with clustering results.
 
 To evaluate the approaches some metrics were defined:
 
@@ -67,8 +67,8 @@ Usage example (from command line):
   Linux/MAC OS:
     
     - python3 clustering_process.py <day> <timewindow> <features file(s)>
-    - python3 clustering_process.py 1 10 day1/10min/*.csv   # To analyse the features of all 10min timewindows
-    - python3 clustering_process.py 1 10day1/10min/10_features_1_10/00/00.csv # To analyse a specific 10min timewindow
+    - python3 clustering_process.py 1 30 day1/30min/*.csv   # To analyse the features of all 30min timewindows
+    - python3 clustering_process.py 1 30 day1/30min/30_features_1_10/00/00.csv # To analyse a specific 30min timewindow
  
 
 
