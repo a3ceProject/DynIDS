@@ -1,7 +1,7 @@
 # DynIDS
 
 In this repository you can find 2 scripts (feature_extractor.py and clustering_process.py).
-It also contains a folder with example data (output), and a small dataset (need to uncompress the .csv file) to test the scripts.
+It also contains a folder with example data ("Output example"), and a small dataset (need to uncompress the .csv file) to test the scripts.
 
 Scripts prerequisites:
   - Python 3
