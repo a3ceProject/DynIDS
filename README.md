@@ -17,6 +17,7 @@ You will also need permission to create folders in your working directory.
 
 The feature_extractor.py script is used to extract the features from a CSV file with traffic information (bidirectional flows).
 This script receives the CSV file as input (e.g., 14-02-18_ftp_bruteforce_partial.csv* ) and returns CSV files (stored in folder "day1"), one per timewindow, with the features extracted and organized by entities (IP addresses).
+
 *partial file from the CICIDS2018 dataset (https://www.unb.ca/cic/datasets/ids-2018.html). The input file can be from other netflow data (e.g., real scenario), as long as the data format is the same.
 
 The features can be selected from 3 methods:
