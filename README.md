@@ -2,7 +2,9 @@
 
 In this repository you can find 2 scripts (feature_extractor.py and clustering_process.py).
 It also contains a folder with example data ("Output Example"), and a small dataset (need to uncompress the .zip file) to test the scripts. 
-Full dataset (CICIDS2018* dataset) can be found here: https://drive.google.com/file/d/1YqzvY7MdbxIvkbdoVAA_umYW_XtPKQBi/view?usp=sharing
+
+Full dataset (from CICIDS2018* dataset) can be found here: https://drive.google.com/file/d/1YqzvY7MdbxIvkbdoVAA_umYW_XtPKQBi/view?usp=sharing
+
 * https://www.unb.ca/cic/datasets/ids-2018.html
 
 Scripts prerequisites:
