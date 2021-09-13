@@ -21,16 +21,16 @@ from tqdm import tqdm
 warnings.filterwarnings("ignore") #remover  avisos
 dates={ #relation between file name with the days and dates to consider and most used ports (src and dst)
     '14-02-18_ftp_bruteforce_partial.csv':[1,datetime(2018,2,14,4,0,0),datetime(2018,2,15,4,0,0),[[22],[21,22]]],
-    'wednesday-14-02-18.csv':[1,datetime(2018,2,14,4,0,0),datetime(2018,2,15,4,0,0),[[22],[21,22]]],
-    'thursday-15-02-18.csv':[2,datetime(2018,2,15,4,0,0),datetime(2018,2,16,4,0,0),[[],[80]]],
-    'friday-16-02-18.csv':[3,datetime(2018,2,16,4,0,0),datetime(2018,2,17,4,0,0),[[80],[21,80]]],
-    'tuesday-20-02-18.csv':[4,datetime(2018,2,20,4,0,0),datetime(2018,2,21,4,0,0),[[80],[80]]],
-    'wednesday-21-02-18.csv':[5,datetime(2018,2,21,4,0,0),datetime(2018,2,22,4,0,0),[[80],[80]]],
-    'thursday-22-02-18.csv':[6,datetime(2018,2,22,4,0,0),datetime(2018,2,23,4,0,0),[[80],[80]]],
-    'friday-23-02-18.csv':[7,datetime(2018,2,23,4,0,0),datetime(2018,2,24,4,0,0),[[80],[80]]],
-    'wednesday-28-02-18.csv':[8,datetime(2018,2,28,4,0,0),datetime(2018,3,1,4,0,0),[[51603,54751],[31337]]],
-    'thursday-01-03-18.csv':[9,datetime(2018,3,1,4,0,0),datetime(2018,3,2,4,0,0),[[51040,31337,53445],[51040,31337]]],
-    'friday-02-03-18.csv':[10,datetime(2018,3,2,4,0,0),datetime(2018,3,3,4,0,0),[[8080,0],[8080,0]]]}
+    'new_wednesday-14-02-18.csv':[1,datetime(2018,2,14,4,0,0),datetime(2018,2,15,4,0,0),[[22],[21,22]]],
+    'new_thursday-15-02-18.csv':[2,datetime(2018,2,15,4,0,0),datetime(2018,2,16,4,0,0),[[],[80]]],
+    'new_friday-16-02-18.csv':[3,datetime(2018,2,16,4,0,0),datetime(2018,2,17,4,0,0),[[80],[21,80]]],
+    'new_tuesday-20-02-18.csv':[4,datetime(2018,2,20,4,0,0),datetime(2018,2,21,4,0,0),[[80],[80]]],
+    'new_wednesday-21-02-18.csv':[5,datetime(2018,2,21,4,0,0),datetime(2018,2,22,4,0,0),[[80],[80]]],
+    'new_thursday-22-02-18.csv':[6,datetime(2018,2,22,4,0,0),datetime(2018,2,23,4,0,0),[[80],[80]]],
+    'new_friday-23-02-18.csv':[7,datetime(2018,2,23,4,0,0),datetime(2018,2,24,4,0,0),[[80],[80]]],
+    'new_wednesday-28-02-18.csv':[8,datetime(2018,2,28,4,0,0),datetime(2018,3,1,4,0,0),[[51603,54751],[31337]]],
+    'new_thursday-01-03-18.csv':[9,datetime(2018,3,1,4,0,0),datetime(2018,3,2,4,0,0),[[51040,31337,53445],[51040,31337]]],
+    'new_friday-02-03-18.csv':[10,datetime(2018,3,2,4,0,0),datetime(2018,3,3,4,0,0),[[8080,0],[8080,0]]]}
 
 def help_msg():
     '''
@@ -43,7 +43,7 @@ def help_msg():
     python3 features_extract.py [FILE PATH] [TimeWindows] [method] [X]
     [FILE PATH] O nome do ficheiro 
     [TimeWindows] time windows (min) to group (default 30), por exemplo: 10,20,30,60
-    [method] 0 OutGene (default); 1 DynIDS, 2 FlowHacker
+    [method] 0 OutGene ; 1 DynIDS (default) ; 2 FlowHacker
     [X] Port number to use in DynIDS, default: 100
     
     Note: In case you specify the [method] you must also specify the [TimeWindows].
