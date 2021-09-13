@@ -1,7 +1,9 @@
 # DynIDS
 
 In this repository you can find 2 scripts (feature_extractor.py and clustering_process.py).
-It also contains a folder with example data ("Output Example"), and a small dataset (need to uncompress the .zip file) to test the scripts.
+It also contains a folder with example data ("Output Example"), and a small dataset (need to uncompress the .zip file) to test the scripts. 
+Full dataset (CICIDS2018* dataset) can be found here: https://drive.google.com/file/d/1YqzvY7MdbxIvkbdoVAA_umYW_XtPKQBi/view?usp=sharing
+* https://www.unb.ca/cic/datasets/ids-2018.html
 
 Scripts prerequisites:
   - Python 3
@@ -18,7 +20,7 @@ You will also need permission to create folders in your working directory.
 The feature_extractor.py script is used to extract the features from a CSV file with traffic information (bidirectional flows).
 This script receives the CSV file as input (e.g., 14-02-18_ftp_bruteforce_partial.csv* ) and returns CSV files (stored in folder "day1"), one per timewindow, with the features extracted and organized by entities (IP addresses).
 
-*partial file from the CICIDS2018 dataset (https://www.unb.ca/cic/datasets/ids-2018.html). The input file can be from other netflow data (e.g., real scenario), as long as the data format is the same.
+*partial file from the CICIDS2018 dataset. The input file can be from other netflow data (e.g., real scenario), as long as the data format is the same.
 
 The features can be selected from 3 methods:
 
