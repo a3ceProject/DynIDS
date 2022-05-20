@@ -79,6 +79,6 @@ Usage example (from command line):
 
 # DynIDS
 
-L. Dias, S. Valente, and M. Correia, “Go With the Flow: Clustering Dynamically-Defined NetFlow Features for
-Network Intrusion Detection with DYNIDS”, In Proceedings of the 19th IEEE International Symposium on Network
+L. Dias, S. Valente, and M. Correia, [“Go With the Flow: Clustering Dynamically-Defined NetFlow Features for
+Network Intrusion Detection with DYNIDS”](https://www.gsd.inesc-id.pt/~mpc/pubs/Go_With_the_Flow__Clustering_Dynamically_Defined_NetFlow_Features-final.pdf), In Proceedings of the 19th IEEE International Symposium on Network
 Computing and Applications (NCA), Nov. 2020
